@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">SetupWizard</string>
+
+    <string name="wifi_security_type_sae" translatable="false">WPA3-Personal</string>
+    <string name="wifi_security_type_wep" translatable="false">WEP</string>
+    <string name="wifi_security_type_wpa" translatable="false">WPA/WPA2 PSK</string>
+    <string name="wifi_security_type_eap" translatable="false">802.1x EAP</string>
+    <string name="wifi_security_type_none" translatable="false">None</string>
+
+    <string name="complete_setup">Complete Setup</string>
+    <string name="action_next">Next</string>
+    <string name="action_start">Start</string>
+
+    <string name="data_time_setup">Date &amp; Time</string>
+    <string name="data_time_description">Set your time zone and adjust current date and time if needed</string>
+    <string name="current_date">Current Data</string>
+    <string name="current_time">Current Time</string>
+
+    <string name="local_setup">Language</string>
+    <string name="local_setup_description">Set display language</string>
+
+    <string name="proxy_error_invalid_host">Hostname isn\'t valid</string>
+    <string name="proxy_error_invalid_exclusion_list">This exclusion list isn\’t valid. Enter a comma-separated list of excluded domains.</string>
+    <string name="proxy_error_empty_port">Port field can\'t be empty</string>
+    <string name="proxy_error_empty_host_set_port">If the host field is empty, leave the port field empty</string>
+    <string name="proxy_error_invalid_port">Port isn\'t valid</string>
+    <string name="password_error">PASSWORD ERROR</string>
+    <string name="network_setup">Network</string>
+    <string name="network_description">Network configuration</string>
+    <string name="not_connected">Not connected</string>
+    <string name="connected">Connected</string>
+    <string name="network_type_ethernet">Ethernet</string>
+    <string name="network_type_wifi">Wi-Fi</string>
+    <string name="wifi_state_connecting">Connecting</string>
+    <string name="wifi_state_authenticating">Authenticating</string>
+    <string name="wifi_state_obtaining_ipaddr">Obtaining Ip Address</string>
+    <string name="wifi_state_failed">Connect Failed</string>
+</resources>

@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">开机向导</string>
+
+    <string name="complete_setup">配置完成</string>
+    <string name="action_next">下一步</string>
+    <string name="action_start">开始</string>
+
+    <string name="data_time_setup">日期 &amp; 时间</string>
+    <string name="data_time_description">设置时区，并根据需要调整当前日期和时间</string>
+    <string name="current_date">当前日期</string>
+    <string name="current_time">当前时间</string>
+
+    <string name="local_setup">语言</string>
+    <string name="local_setup_description">设置系统语言</string>
+
+    <string name="proxy_error_invalid_host">主机名无效</string>
+    <string name="proxy_error_invalid_exclusion_list">此排除列表心无效。请输入用英文逗号分隔的排除网域列表。</string>
+    <string name="proxy_error_empty_port">端口字段不能为空</string>
+    <string name="proxy_error_empty_host_set_port">如果主机字段为空，请将端口字段也留空</string>
+    <string name="proxy_error_invalid_port">端口无效</string>
+    <string name="password_error">密码错误</string>
+    <string name="network_setup">网络</string>
+    <string name="network_description">网络配置</string>
+    <string name="not_connected">未连接</string>
+    <string name="connected">已连接</string>
+    <string name="network_type_ethernet">有线</string>
+    <string name="network_type_wifi">无线</string>
+    <string name="wifi_state_connecting">连接中</string>
+    <string name="wifi_state_authenticating">认证中</string>
+    <string name="wifi_state_obtaining_ipaddr">获取ip地址</string>
+    <string name="wifi_state_failed">连接失败</string>
+</resources>

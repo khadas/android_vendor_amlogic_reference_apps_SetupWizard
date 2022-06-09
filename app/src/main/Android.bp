@@ -1,0 +1,37 @@
+android_app {
+    name: "SetupWizard",
+
+    srcs: ["java/**/*.java"],
+    libs: [],
+
+    manifest: "AndroidManifest.xml",
+    required: ["com.droidlogic.setupwizard.xml"],
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    platform_apis: true,
+    overrides: ["Provision"],
+
+	static_libs: [
+		"SettingsLib",
+		"androidx.appcompat_appcompat",
+		"androidx.leanback_leanback",
+		"androidx-constraintlayout_constraintlayout",
+	],
+
+    optimize: {
+        enabled: false,
+    },
+
+    dex_preopt: {
+        enabled: false,
+    },
+
+}
+
+prebuilt_etc {
+    name: "com.droidlogic.setupwizard.xml",
+    system_ext_specific: true,
+    src: "com.droidlogic.setupwizard.xml",
+    sub_dir: "permissions",
+}

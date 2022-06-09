@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="action_next_focused">#FFFFFF</color>
+    <color name="action_next_normal">#80FFFFFF</color>
+</resources>

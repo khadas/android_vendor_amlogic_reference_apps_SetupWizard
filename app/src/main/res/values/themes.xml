@@ -1,0 +1,22 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="guidedActionItem" parent="@style/Widget.Leanback.GuidedActionItemContainerStyle">
+        <item name="android:foreground">@drawable/selector_action_item</item>
+    </style>
+
+    <style name="guidedActionItemTitle" parent="@style/Widget.Leanback.GuidedActionItemTitleStyle">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="datePicker" parent="@style/Widget.Leanback.PickerStyle.DatePickerStyle">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+
+    <style name="Theme.SetupWizard" parent="@style/Theme.Leanback.GuidedStep">
+        <item name="guidedActionItemContainerStyle">@style/guidedActionItem</item>
+        <item name="guidedActionItemTitleStyle">@style/guidedActionItemTitle</item>
+        <item name="datePickerStyle">@style/datePicker</item>
+    </style>
+
+</resources>
