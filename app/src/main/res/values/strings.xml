@@ -35,4 +35,9 @@
     <string name="wifi_state_authenticating">Authenticating</string>
     <string name="wifi_state_obtaining_ipaddr">Obtaining Ip Address</string>
     <string name="wifi_state_failed">Connect Failed</string>
+
+    <string name="dialog_skip_title">Notice</string>
+    <string name="dialog_skip_notice">Skip SetUp Wizard ?</string>
+    <string name="dialog_btn_confirm">confirm</string>
+    <string name="dialog_btn_cancel">cancel</string>
 </resources>

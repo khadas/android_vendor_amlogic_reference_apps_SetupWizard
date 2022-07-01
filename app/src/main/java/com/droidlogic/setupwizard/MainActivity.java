@@ -5,6 +5,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.pm.PackageManager;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 
 import com.droidlogic.setupwizard.fragment.BaseGuideStepFragment;
 import com.droidlogic.setupwizard.fragment.LocalFragment;
+import com.droidlogic.setupwizard.utils.Backdoor;
 
 import java.util.List;
 
@@ -28,12 +30,17 @@ public class MainActivity extends FragmentActivity {
     private View viNextAction;
     private View viWifiFloat;
     private TextView tvWifiName;
-    private final int[] disableKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
+    private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (Settings.Secure.getInt(getContentResolver(), Settings.Secure.USER_SETUP_COMPLETE, 0) == 1) {
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             finishSetup();
             return;
         }
@@ -126,10 +133,26 @@ public class MainActivity extends FragmentActivity {
         tvNext.setText(text);
     }
 
+    private final Backdoor backdoor = new Backdoor();
+
     @SuppressLint("RestrictedApi")
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        for (int keyCode : disableKey) {
+        if (backdoor.input(event)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.dialog_skip_title)
+                    .setMessage(R.string.dialog_skip_notice)
+                    .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
+                        dialog.dismiss();
+                        setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+                        finishSetup();
+                    })
+                    .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> dialog.dismiss())
+                    .create()
+                    .show();
+            return true;
+        }
+        for (int keyCode : forbiddenKey) {
             if (keyCode == event.getKeyCode()) {
                 return true;
             }
@@ -159,13 +182,17 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void finishSetup() {
-        ContentResolver contentResolver = getContentResolver();
-        Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
-        Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
-        PackageManager pm = getPackageManager();
-        ComponentName name = new ComponentName(this, MainActivity.class);
-        pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        finish();
+        try {
+            ContentResolver contentResolver = getContentResolver();
+            Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
+            Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
+            PackageManager pm = getPackageManager();
+            ComponentName name = new ComponentName(MainActivity.this, MainActivity.class);
+            pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        super.finish();
     }
 
 }

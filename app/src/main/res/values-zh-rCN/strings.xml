@@ -29,4 +29,9 @@
     <string name="wifi_state_authenticating">认证中</string>
     <string name="wifi_state_obtaining_ipaddr">获取ip地址</string>
     <string name="wifi_state_failed">连接失败</string>
+
+    <string name="dialog_skip_title">提示</string>
+    <string name="dialog_skip_notice">是否退出开机向导？</string>
+    <string name="dialog_btn_confirm">确定</string>
+    <string name="dialog_btn_cancel">取消</string>
 </resources>
