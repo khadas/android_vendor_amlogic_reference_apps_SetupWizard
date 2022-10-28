@@ -259,14 +259,6 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
         return mNetworkType == ConnectivityManager.TYPE_MOBILE;
     }
 
-    /**
-     * Return whether Ethernet port is available.
-     */
-    public boolean isEthernetAvailable() {
-        return mConnectivityManager.isNetworkSupported(ConnectivityManager.TYPE_ETHERNET)
-                && mEthernetManager.getAvailableInterfaces().length > 0;
-    }
-
     private Network getFirstEthernet() {
         final Network[] networks = mConnectivityManager.getAllNetworks();
         for (final Network network : networks) {
