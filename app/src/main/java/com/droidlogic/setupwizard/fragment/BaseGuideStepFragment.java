@@ -113,7 +113,13 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
             VerticalGridView verticalGridView = getGuidedActionsStylist().getActionsGridView();
             RecyclerView.LayoutManager layoutManager = verticalGridView.getLayoutManager();
             Class cls = Class.forName("androidx.leanback.widget.GridLayoutManager");
-            Method method = cls.getMethod("setFocusOutAllowed", boolean.class, boolean.class);
+            Method method;
+            try {
+                method = cls.getMethod("setFocusOutAllowed", boolean.class, boolean.class);
+            } catch (NoSuchMethodException e) {
+                method = cls.getDeclaredMethod("setFocusOutAllowed", boolean.class, boolean.class);
+                method.setAccessible(true);
+            }
             method.invoke(layoutManager, true, true);
         } catch (Exception e) {
             e.printStackTrace();
