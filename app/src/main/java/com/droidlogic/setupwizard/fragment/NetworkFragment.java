@@ -12,7 +12,12 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -36,6 +41,7 @@ import com.droidlogic.setupwizard.R;
 import com.droidlogic.setupwizard.leanback.timepicker.GuidedActionsStylistExtended;
 import com.droidlogic.setupwizard.utils.WifiConfigHelper;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +63,9 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     private GuidedAction wifiGuidedAction;
     private GuidedAction ethernetGuidedAction;
+
+    private TaskHandler taskHandler;
+    private HandlerThread handlerThread;
 
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
@@ -80,7 +89,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
     };
 
     private NetworkInfo getNetworkInfo(int networkType) {
-        if (getContext() == null) return null;
+        if (getContext() == null || wifiManager == null) return null;
         ConnectivityManager connManager = (ConnectivityManager) getContext().getApplicationContext()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         return connManager.getNetworkInfo(networkType);
@@ -88,9 +97,11 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     private void updateWifiList() {
         if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
-            final List<AccessPoint> accessPoints = connectivityListener.getAvailableNetworks();
-            updateWifiList(accessPoints);
-            updateConnectState(false);
+            runOnUiThread(() -> {
+                final List<AccessPoint> accessPoints = connectivityListener.getAvailableNetworks();
+                updateWifiList(accessPoints);
+                updateConnectState(false);
+            });
         }
     }
 
@@ -118,22 +129,20 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (getContext() == null) return;
-        wifiManager = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiManager != null) {
-            if (!wifiManager.isWifiEnabled()) {
-                wifiManager.setWifiEnabled(true);
-            }
+        Context context = getContext();
+        if (context == null) return;
+        if (context instanceof MainActivity) {
+            MainActivity activity = (MainActivity) context;
+            wifiManager = activity.getWifiManager();
         }
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        getContext().registerReceiver(wifiScanReceiver, intentFilter);
+        context.registerReceiver(wifiScanReceiver, intentFilter);
         super.onCreate(savedInstanceState);
+        initTask();
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+    private void setWifiListener() {
         connectivityListener.setWifiListener(() -> {
             List<AccessPoint> accessPointList = connectivityListener.getAvailableNetworks();
             if (accessPointList != null) {
@@ -154,17 +163,69 @@ public class NetworkFragment extends BaseGuideStepFragment {
             }
             updateWifiList();
         });
-        updateWifiList();
-        connectivityListener.start();
+    }
+
+    private void initTask() {
+        if (taskHandler == null) {
+            if (handlerThread != null) {
+                handlerThread.quitSafely();
+            }
+            handlerThread = new HandlerThread("ConnectivityThread");
+            handlerThread.start();
+            taskHandler = new TaskHandler(handlerThread.getLooper(), this);
+        }
+    }
+
+    private static class TaskHandler extends Handler {
+
+        private final WeakReference<NetworkFragment> weakReference;
+
+        public TaskHandler(Looper looper, NetworkFragment networkFragment) {
+            super(looper);
+            weakReference = new WeakReference<>(networkFragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            try {
+                NetworkFragment networkFragment = weakReference.get();
+                if (networkFragment == null) return;
+                networkFragment.connectivityListener.start();
+                networkFragment.setWifiListener();
+                networkFragment.updateWifiList();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i("NetworkFragment", "connectivityListener-->e:" + e);
+            }
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (taskHandler != null) {
+            taskHandler.sendEmptyMessage(1);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        connectivityListener.stop();
-        connectivityListener.destroy();
+        if (wifiManager != null) {
+            connectivityListener.stop();
+            connectivityListener.destroy();
+        }
         if (getContext() != null) {
             getContext().unregisterReceiver(wifiScanReceiver);
+        }
+        if (taskHandler != null) {
+            taskHandler.removeCallbacks(null);
+            taskHandler = null;
+        }
+        if (handlerThread != null) {
+            handlerThread.quitSafely();
+            handlerThread = null;
         }
     }
 

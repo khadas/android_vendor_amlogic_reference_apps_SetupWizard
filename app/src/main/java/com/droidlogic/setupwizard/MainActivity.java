@@ -8,7 +8,9 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.KeyEvent;
@@ -47,6 +49,7 @@ public class MainActivity extends FragmentActivity {
         if (null == savedInstanceState) {
             GuidedStepSupportFragment.addAsRoot(this, new LocalFragment(), android.R.id.content);
         }
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
         final FrameLayout contentGroup = findViewById(android.R.id.content);
         viWifiFloat = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_wifi_float, contentGroup, false);
@@ -62,6 +65,27 @@ public class MainActivity extends FragmentActivity {
             contentGroup.addView(viNextAction);
             contentGroup.addView(viWifiFloat);
         });
+        enableWifi();
+    }
+
+    private WifiManager wifiManager;
+
+    public WifiManager getWifiManager() {
+        return wifiManager;
+    }
+
+    public void enableWifi() {
+        new Thread(() -> {
+            try {
+                if (wifiManager != null) {
+                    if (!wifiManager.isWifiEnabled()) {
+                        wifiManager.setWifiEnabled(true);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private BaseGuideStepFragment getTopBaseGuideStepFragment() {
@@ -182,17 +206,22 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void finishSetup() {
-        try {
-            ContentResolver contentResolver = getContentResolver();
-            Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
-            Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
-            PackageManager pm = getPackageManager();
-            ComponentName name = new ComponentName(MainActivity.this, MainActivity.class);
-            pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        disableComponent();
         super.finish();
     }
 
+    private void disableComponent() {
+        new Thread(() -> {
+            try {
+                ContentResolver contentResolver = getContentResolver();
+                Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
+                Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
+                PackageManager pm = getPackageManager();
+                ComponentName name = new ComponentName(MainActivity.this, MainActivity.class);
+                pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }

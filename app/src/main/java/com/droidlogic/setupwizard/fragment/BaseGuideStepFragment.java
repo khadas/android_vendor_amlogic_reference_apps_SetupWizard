@@ -81,7 +81,14 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
 
     protected void toast(String text) {
         if (getContext() == null) return;
-        Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
+        runOnUiThread(() -> Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show());
+    }
+
+    protected void runOnUiThread(Runnable runnable) {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(runnable);
+        }
     }
 
     protected MainActivity getMainActivity() {
