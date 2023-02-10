@@ -46,4 +46,8 @@ public class AccessPoint {
         return null;
     }
 
+    public int getLevel() {
+        return 0;
+    }
+
 }

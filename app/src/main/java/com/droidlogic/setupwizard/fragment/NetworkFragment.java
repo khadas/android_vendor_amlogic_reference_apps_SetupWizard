@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +24,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
@@ -39,6 +41,7 @@ import com.droidlogic.setupwizard.ConnectivityListener;
 import com.droidlogic.setupwizard.MainActivity;
 import com.droidlogic.setupwizard.R;
 import com.droidlogic.setupwizard.leanback.timepicker.GuidedActionsStylistExtended;
+import com.droidlogic.setupwizard.leanback.timepicker.GuidedWifiSignalAction;
 import com.droidlogic.setupwizard.utils.WifiConfigHelper;
 
 import java.lang.ref.WeakReference;
@@ -240,6 +243,40 @@ public class NetworkFragment extends BaseGuideStepFragment {
         connectivityListener = new ConnectivityListener(getContext(), this::updateWifiList);
     }
 
+    private static void addWifiAction(
+            Context context,
+            List<GuidedAction> actions,
+            long id,
+            String title,
+            String desc,
+            int signalLevel) {
+        actions.add(new GuidedWifiSignalAction.Builder(context)
+                .id(id)
+                .title(title)
+                .description(desc)
+                .signalLevel(signalLevel)
+                .build());
+    }
+
+    private static void addEditablePasswordAction(
+            Context context,
+            List<GuidedAction> actions,
+            long id,
+            String title,
+            String desc,
+            int signalLevel) {
+        actions.add(new GuidedWifiSignalAction.Builder(context)
+                .id(id)
+                .title(title)
+                .description(desc)
+                .editable(true)
+                .editTitle("")
+                .signalLevel(signalLevel)
+                .descriptionInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                .descriptionEditInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                .build());
+    }
+
     @SuppressLint("RestrictedApi")
     private void updateWifiList(List<AccessPoint> accessPoints) {
         if (accessPoints == null || wifiManager == null) return;
@@ -252,12 +289,12 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 WifiConfiguration config = accessPoint.getConfig();
                 if (config != null) {
                     if (config.getNetworkSelectionStatus().getNetworkSelectionStatus() != NETWORK_SELECTION_ENABLED) {
-                        addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary());
+                        addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
                     } else {
-                        addAction(getActivity(), wifiGuideActionList, index, accessPoint.getTitle(), accessPoint.getSummary());
+                        addWifiAction(getActivity(), wifiGuideActionList, index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
                     }
                 } else {
-                    addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary());
+                    addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
                 }
                 index++;
             }
@@ -335,9 +372,41 @@ public class NetworkFragment extends BaseGuideStepFragment {
         }
     }
 
+    private int getWifiIcon(int level) {
+        if (level <= 0) {
+            return R.drawable.wifi_strength_0;
+        } else if (level == 1) {
+            return R.drawable.wifi_strength_1;
+        } else if (level == 2) {
+            return R.drawable.wifi_strength_2;
+        } else if (level == 3) {
+            return R.drawable.wifi_strength_3;
+        }
+        return R.drawable.wifi_strength_4;
+    }
+
     @Override
     public GuidedActionsStylist onCreateActionsStylist() {
-        GuidedActionsStylistExtended guidedActionsStylistExtended = new GuidedActionsStylistExtended();
+        GuidedActionsStylistExtended guidedActionsStylistExtended = new GuidedActionsStylistExtended() {
+            @Override
+            public void onBindViewHolder(ViewHolder vh, GuidedAction action) {
+                super.onBindViewHolder(vh, action);
+                Log.i("wifi_drawable", "action:" + action + "--" + action.getClass());
+                if (action instanceof GuidedWifiSignalAction) {
+                    try {
+                        GuidedWifiSignalAction guidedWifiSignalAction = (GuidedWifiSignalAction) action;
+                        Log.i("wifi_drawable", "action:" + action + "--SignalLevel:" + guidedWifiSignalAction.getSignalLevel());
+                        Drawable drawable = AppCompatResources.getDrawable(vh.itemView.getContext(), getWifiIcon(guidedWifiSignalAction.getSignalLevel()));
+                        Log.i("wifi_drawable", "drawable:" + drawable + "--" + guidedWifiSignalAction.getSignalLevel());
+                        drawable.setBounds(0, 0, 48, 48);
+                        vh.getTitleView().setCompoundDrawables(null, null, drawable, null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.i("wifi_drawable", "Exception:" + e);
+                    }
+                }
+            }
+        };
         guidedActionsStylistExtended.setEditingModeChangeListener(new GuidedActionsStylistExtended.EditingModeChangeListener() {
             @Override
             public void onEditingModeChange(GuidedActionsStylist.ViewHolder vh, boolean editing, boolean withTransition) {

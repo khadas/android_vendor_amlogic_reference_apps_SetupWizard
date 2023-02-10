@@ -27,36 +27,6 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
 
     private static final int OPTION_CHECK_SET_ID = 10;
 
-    public static void addAction(
-            Context context,
-            List<GuidedAction> actions,
-            long id,
-            String title,
-            String desc) {
-        actions.add(new GuidedAction.Builder(context)
-                .id(id)
-                .title(title)
-                .description(desc)
-                .build());
-    }
-
-    public static void addEditablePasswordAction(
-            Context context,
-            List<GuidedAction> actions,
-            long id,
-            String title,
-            String desc) {
-        actions.add(new GuidedAction.Builder(context)
-                .id(id)
-                .title(title)
-                .description(desc)
-                .editable(true)
-                .editTitle("")
-                .descriptionInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-                .descriptionEditInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-                .build());
-    }
-
     public static GuidedAction addCheckedAction(
             Context context,
             List<GuidedAction> actions,
