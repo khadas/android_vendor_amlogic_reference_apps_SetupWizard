@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity {
         if (null == savedInstanceState) {
             GuidedStepSupportFragment.addAsRoot(this, new LocalFragment(), android.R.id.content);
         }
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        enableWifi();
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
         final FrameLayout contentGroup = findViewById(android.R.id.content);
         viWifiFloat = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_wifi_float, contentGroup, false);
@@ -65,18 +65,12 @@ public class MainActivity extends FragmentActivity {
             contentGroup.addView(viNextAction);
             contentGroup.addView(viWifiFloat);
         });
-        enableWifi();
-    }
-
-    private WifiManager wifiManager;
-
-    public WifiManager getWifiManager() {
-        return wifiManager;
     }
 
     public void enableWifi() {
         new Thread(() -> {
             try {
+                WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                 if (wifiManager != null) {
                     if (!wifiManager.isWifiEnabled()) {
                         wifiManager.setWifiEnabled(true);

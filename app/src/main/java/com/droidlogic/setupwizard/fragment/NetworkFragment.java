@@ -58,6 +58,10 @@ public class NetworkFragment extends BaseGuideStepFragment {
     private final int ID_WIFI = 20;
     private final int ID_ETHERNET = 21;
     private final int EDITABLE_LABEL = 2000;
+
+    private static final int MSG_WHAT_START = 1;
+    private static final int MSG_WHAT_STOP = 2;
+
     private WifiManager wifiManager;
     private ConnectivityListener connectivityListener;
     private final List<GuidedAction> wifiGuideActionList = new ArrayList<>();
@@ -132,17 +136,12 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Context context = getContext();
         if (context == null) return;
         if (context instanceof MainActivity) {
-            MainActivity activity = (MainActivity) context;
-            wifiManager = activity.getWifiManager();
+            wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         }
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        context.registerReceiver(wifiScanReceiver, intentFilter);
-        super.onCreate(savedInstanceState);
-        initTask();
     }
 
     private void setWifiListener() {
@@ -173,7 +172,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
             if (handlerThread != null) {
                 handlerThread.quitSafely();
             }
-            handlerThread = new HandlerThread("ConnectivityThread");
+            handlerThread = new HandlerThread(getClass().getName());
             handlerThread.start();
             taskHandler = new TaskHandler(handlerThread.getLooper(), this);
         }
@@ -194,12 +193,19 @@ public class NetworkFragment extends BaseGuideStepFragment {
             try {
                 NetworkFragment networkFragment = weakReference.get();
                 if (networkFragment == null) return;
-                networkFragment.connectivityListener.start();
-                networkFragment.setWifiListener();
-                networkFragment.updateWifiList();
+                switch (msg.what) {
+                    case MSG_WHAT_START:
+                        networkFragment.connectivityListener.start();
+                        networkFragment.setWifiListener();
+                        networkFragment.updateWifiList();
+                        break;
+                    case MSG_WHAT_STOP:
+                        networkFragment.connectivityListener.stop();
+                        networkFragment.connectivityListener.destroy();
+                        break;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.i("NetworkFragment", "connectivityListener-->e:" + e);
             }
         }
     }
@@ -207,23 +213,27 @@ public class NetworkFragment extends BaseGuideStepFragment {
     @Override
     public void onStart() {
         super.onStart();
+        Context context = getContext();
+        if (context != null) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+            context.registerReceiver(wifiScanReceiver, intentFilter);
+        }
+        initTask();
         if (taskHandler != null) {
-            taskHandler.sendEmptyMessage(1);
+            taskHandler.sendEmptyMessage(MSG_WHAT_START);
         }
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (wifiManager != null) {
-            connectivityListener.stop();
-            connectivityListener.destroy();
-        }
-        if (getContext() != null) {
-            getContext().unregisterReceiver(wifiScanReceiver);
+    public void onStop() {
+        super.onStop();
+        Context context = getContext();
+        if (context != null) {
+            context.unregisterReceiver(wifiScanReceiver);
         }
         if (taskHandler != null) {
-            taskHandler.removeCallbacks(null);
+            taskHandler.sendEmptyMessage(MSG_WHAT_STOP);
             taskHandler = null;
         }
         if (handlerThread != null) {
