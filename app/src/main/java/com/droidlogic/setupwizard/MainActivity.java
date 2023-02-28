@@ -1,9 +1,5 @@
 package com.droidlogic.setupwizard;
 
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.leanback.app.GuidedStepSupportFragment;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -20,23 +16,39 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.leanback.app.GuidedStepSupportFragment;
+
 import com.droidlogic.setupwizard.fragment.BaseGuideStepFragment;
 import com.droidlogic.setupwizard.fragment.LocalFragment;
 import com.droidlogic.setupwizard.utils.Backdoor;
 
 import java.util.List;
 
-
 public class MainActivity extends FragmentActivity {
 
+    private TextView runningInfo;
     private View viNextAction;
     private View viWifiFloat;
     private TextView tvWifiName;
     private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
 
+    private final Runnable viewUpdateTask = new Runnable() {
+        @Override
+        public void run() {
+            runningInfo.setText("0");
+            runningInfo.postDelayed(viewUpdateTask, 1000);
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        runningInfo = findViewById(R.id.text);
+        viewUpdateTask.run();
         if (Settings.Secure.getInt(getContentResolver(), Settings.Secure.USER_SETUP_COMPLETE, 0) == 1) {
             try {
                 Thread.sleep(500);
@@ -156,6 +168,7 @@ public class MainActivity extends FragmentActivity {
     @SuppressLint("RestrictedApi")
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        //tv.setText(String.valueOf(event));
         if (backdoor.input(event)) {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.dialog_skip_title)
@@ -181,14 +194,6 @@ public class MainActivity extends FragmentActivity {
         return super.dispatchKeyEvent(event);
     }
 
-    @Override
-    public void finish() {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
-            super.finish();
-        }
-    }
-
     private void setHdmiCecComponentEnabled(int state) {
         try {
             PackageManager pm = getPackageManager();
@@ -196,6 +201,14 @@ public class MainActivity extends FragmentActivity {
             pm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void finish() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+            super.finish();
         }
     }
 
