@@ -40,4 +40,9 @@
     <string name="dialog_skip_notice">Skip SetUp Wizard ?</string>
     <string name="dialog_btn_confirm">confirm</string>
     <string name="dialog_btn_cancel">cancel</string>
+
+    <string name="dialog_negative">Cancel</string>
+    <string name="dialog_positive">Ok</string>
+    <string name="forget_network_title">Forget network</string>
+    <string name="forget_network_message">Your device will stop connecting to this network automatically</string>
 </resources>

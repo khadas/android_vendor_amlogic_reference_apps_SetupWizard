@@ -34,4 +34,9 @@
     <string name="dialog_skip_notice">是否退出开机向导？</string>
     <string name="dialog_btn_confirm">确定</string>
     <string name="dialog_btn_cancel">取消</string>
+
+    <string name="dialog_negative">取消</string>
+    <string name="dialog_positive">取消</string>
+    <string name="forget_network_title">取消保存</string>
+    <string name="forget_network_message">您的设备将自动停止连接到此网络</string>
 </resources>

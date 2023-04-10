@@ -1,6 +1,7 @@
 package com.droidlogic.setupwizard.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -401,18 +403,31 @@ public class NetworkFragment extends BaseGuideStepFragment {
             @Override
             public void onBindViewHolder(ViewHolder vh, GuidedAction action) {
                 super.onBindViewHolder(vh, action);
-                Log.i("wifi_drawable", "action:" + action + "--" + action.getClass());
                 if (action instanceof GuidedWifiSignalAction) {
                     try {
                         GuidedWifiSignalAction guidedWifiSignalAction = (GuidedWifiSignalAction) action;
-                        Log.i("wifi_drawable", "action:" + action + "--SignalLevel:" + guidedWifiSignalAction.getSignalLevel());
                         Drawable drawable = AppCompatResources.getDrawable(vh.itemView.getContext(), getWifiIcon(guidedWifiSignalAction.getSignalLevel()));
-                        Log.i("wifi_drawable", "drawable:" + drawable + "--" + guidedWifiSignalAction.getSignalLevel());
-                        drawable.setBounds(0, 0, 48, 48);
-                        vh.getTitleView().setCompoundDrawables(null, null, drawable, null);
+                        if (drawable != null) {
+                            drawable.setBounds(0, 0, 48, 48);
+                            TextView titleView = vh.getTitleView();
+                            titleView.setCompoundDrawables(null, null, drawable, null);
+                        }
+                        vh.itemView.setOnLongClickListener(view -> {
+                            try {
+                                if (!action.isEditable()) {
+                                    AccessPoint accessPoint = wifiList.get((int) action.getId());
+                                    WifiConfiguration config = accessPoint.getConfig();
+                                    if (config != null) {
+                                        showForgetDialog(accessPoint);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            return true;
+                        });
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Log.i("wifi_drawable", "Exception:" + e);
                     }
                 }
             }
@@ -501,6 +516,31 @@ public class NetworkFragment extends BaseGuideStepFragment {
         currentConfiguration = configuration;
         wifiManager.disconnect();
         wifiManager.connect(configuration, null);
+    }
+
+    private void forget(WifiConfiguration configuration) {
+        if (wifiManager == null || configuration == null) return;
+        wifiManager.forget(configuration.networkId, null);
+        wifiManager.reconnect();
+    }
+
+    private void showForgetDialog(AccessPoint accessPoint) {
+        Context context = getContext();
+        if (context == null) return;
+        new AlertDialog.Builder(context)
+                .setTitle(R.string.forget_network_title)
+                .setMessage(R.string.forget_network_message)
+                .setNegativeButton(R.string.dialog_negative, (dialogInterface, i) -> dialogInterface.dismiss())
+                .setPositiveButton(R.string.dialog_positive, (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    if (accessPoint.isActive()) {
+                        currentConfiguration = null;
+                        if (wifiManager != null) {
+                            wifiManager.disconnect();
+                        }
+                    }
+                    forget(accessPoint.getConfig());
+                }).create().show();
     }
 
     private boolean isHideShowSoftKeyboard() {
