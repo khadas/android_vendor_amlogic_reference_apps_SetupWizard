@@ -156,7 +156,9 @@ public class NetworkFragment extends BaseGuideStepFragment {
                         if (currentConfiguration != null && configuration != null && TextUtils.equals(configuration.SSID, currentConfiguration.SSID)) {
                             int state = (configuration.getNetworkSelectionStatus().getNetworkSelectionStatus());
                             if (state == DISABLED_AUTHENTICATION_FAILURE || state == DISABLED_BY_WRONG_PASSWORD) {
-                                toast(currentConfiguration.SSID + getString(R.string.password_error));
+                                if (currentConfiguration != null && !TextUtils.isEmpty(currentConfiguration.preSharedKey)) {
+                                    toast(currentConfiguration.SSID + getString(R.string.password_error));
+                                }
                                 currentConfiguration = null;
                             }
                         }

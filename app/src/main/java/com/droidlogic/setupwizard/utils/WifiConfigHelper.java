@@ -77,7 +77,9 @@ public final class WifiConfigHelper {
             WifiConfiguration config, int security, String password) {
         config.allowedKeyManagement.clear();
         config.allowedAuthAlgorithms.clear();
-        config.preSharedKey = "\"" + password + "\"";
+        if (security != AccessPoint.SECURITY_NONE) {
+            config.preSharedKey = "\"" + password + "\"";
+        }
         switch (security) {
             case AccessPoint.SECURITY_NONE:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
