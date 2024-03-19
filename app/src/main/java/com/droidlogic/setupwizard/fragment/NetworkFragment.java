@@ -308,7 +308,11 @@ public class NetworkFragment extends BaseGuideStepFragment {
                         addWifiAction(getActivity(), wifiGuideActionList, index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
                     }
                 } else {
-                    addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
+                    if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
+                        addWifiAction(getActivity(), wifiGuideActionList, index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
+                    } else {
+                        addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
+                    }
                 }
                 index++;
             }
@@ -499,6 +503,9 @@ public class NetworkFragment extends BaseGuideStepFragment {
             if (!accessPoint.isActive()) {
                 connect(config);
             }
+        } else if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
+            WifiConfiguration wifiConfiguration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), null);
+            connect(wifiConfiguration);
         }
         return super.onSubGuidedActionClicked(action);
     }
