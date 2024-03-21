@@ -20,6 +20,7 @@ import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.text.TextUtils;
@@ -77,28 +78,49 @@ public final class WifiConfigHelper {
             WifiConfiguration config, int security, String password) {
         config.allowedKeyManagement.clear();
         config.allowedAuthAlgorithms.clear();
-        if (security != AccessPoint.SECURITY_NONE) {
-            config.preSharedKey = "\"" + password + "\"";
-        }
+        int length = password != null ? password.length() : 0;
         switch (security) {
             case AccessPoint.SECURITY_NONE:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
                 break;
             case AccessPoint.SECURITY_WEP:
-                config.wepKeys[0] = "\"" + password + "\"";
+                //config.wepKeys[0] = "\"" + password + "\"";
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
                 config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
                 config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
+                if ((length == 10 || length == 26 || length == 58)
+                        && password.matches("[0-9A-Fa-f]*")) {
+                    config.wepKeys[0] = password;
+                } else if (length != 0) {
+                    config.wepKeys[0] = '"' + password + '"';
+                }
                 break;
             case AccessPoint.SECURITY_PSK:
                 config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
+                if (length != 0) {
+                    if (password.matches("[0-9A-Fa-f]{64}")) {
+                        config.preSharedKey = password;
+                    } else {
+                        config.preSharedKey = '"' + password + '"';
+                    }
+                }
                 break;
             case AccessPoint.SECURITY_EAP:
-                config.allowedKeyManagement.set(KeyMgmt.WPA_EAP);
-                config.allowedKeyManagement.set(KeyMgmt.IEEE8021X);
+                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_EAP);
+                if (length != 0) {
+                    config.enterpriseConfig.setPassword(password);
+                }
+                config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
+                config.enterpriseConfig.setEapMethod(WifiEnterpriseConfig.Eap.PEAP);
                 break;
             case AccessPoint.SECURITY_SAE:
-                config.allowedKeyManagement.set(KeyMgmt.SAE);// DroidLogic modify SWPL-45229
+                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_SAE);
+                if (length != 0) {
+                    config.preSharedKey = '"' + password + '"';
+                }
+                break;
+            case AccessPoint.SECURITY_OWE:
+                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_OWE);
                 break;
         }
     }
